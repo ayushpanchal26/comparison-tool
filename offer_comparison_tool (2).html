@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Offers Comparison Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .upload-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .upload-box {
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            background: white;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-box:hover {
+            border-color: #667eea;
+            background: #f7fafc;
+        }
+
+        .upload-box.active {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+
+        .upload-box input[type="file"] {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .upload-box h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+
+        .upload-box p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .compare-btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .compare-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .compare-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            padding: 30px;
+            display: none;
+        }
+
+        .results-section.visible {
+            display: block;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f6f8fb 0%, #ffffff 100%);
+            padding: 24px;
+            border-radius: 12px;
+            border-left: 4px solid;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-card.unchanged {
+            border-left-color: #48bb78;
+        }
+
+        .stat-card.new {
+            border-left-color: #4299e1;
+        }
+
+        .stat-card.deleted {
+            border-left-color: #f56565;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn:hover {
+            border-color: #cbd5e0;
+        }
+
+        .filter-btn.active {
+            color: white;
+        }
+
+        .filter-btn.unchanged.active {
+            background: #48bb78;
+            border-color: #48bb78;
+        }
+
+        .filter-btn.new.active {
+            background: #4299e1;
+            border-color: #4299e1;
+        }
+
+        .filter-btn.deleted.active {
+            background: #f56565;
+            border-color: #f56565;
+        }
+
+        .filter-badge {
+            background: #edf2f7;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .filter-btn.active .filter-badge {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .export-btn {
+            padding: 10px 20px;
+            background: #2d3748;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .export-btn:hover {
+            background: #1a202c;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: #f7fafc;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.unchanged {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-badge.new {
+            background: #bee3f8;
+            color: #1a365d;
+        }
+
+        .status-badge.deleted {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .offer-title {
+            font-weight: 600;
+            color: #2d3748;
+            max-width: 400px;
+        }
+
+        .offer-url {
+            color: #667eea;
+            text-decoration: none;
+            max-width: 300px;
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .offer-url:hover {
+            text-decoration: underline;
+        }
+
+        .coupon-code {
+            font-family: 'Courier New', monospace;
+            background: #edf2f7;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .no-results-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Payment Offers Comparison Tool</h1>
+            <p>Compare payment offer databases across different points in time</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-grid">
+                <div class="upload-box" id="originalBox">
+                    <input type="file" id="originalFile" accept=".csv">
+                    <div class="upload-icon">📄</div>
+                    <h3>Original Database (OLDER)</h3>
+                    <p>Upload the OLDER CSV file</p>
+                    <div class="file-name" id="originalFileName"></div>
+                </div>
+
+                <div class="upload-box" id="updatedBox">
+                    <input type="file" id="updatedFile" accept=".csv">
+                    <div class="upload-icon">📄</div>
+                    <h3>Updated Database (NEWER)</h3>
+                    <p>Upload the NEWER CSV file</p>
+                    <div class="file-name" id="updatedFileName"></div>
+                </div>
+            </div>
+
+            <button class="compare-btn" id="compareBtn" disabled>Compare Databases</button>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="stats">
+                <div class="stat-card unchanged">
+                    <h3>Unchanged Offers</h3>
+                    <div class="number" id="unchangedCount">0</div>
+                </div>
+                <div class="stat-card new">
+                    <h3>New Offers</h3>
+                    <div class="number" id="newCount">0</div>
+                </div>
+                <div class="stat-card deleted">
+                    <h3>Deleted Offers</h3>
+                    <div class="number" id="deletedCount">0</div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <button class="filter-btn unchanged active" data-status="unchanged">
+                    Unchanged <span class="filter-badge" id="unchangedBadge">0</span>
+                </button>
+                <button class="filter-btn new active" data-status="new">
+                    New Offers <span class="filter-badge" id="newBadge">0</span>
+                </button>
+                <button class="filter-btn deleted active" data-status="deleted">
+                    Deleted <span class="filter-badge" id="deletedBadge">0</span>
+                </button>
+                <button class="export-btn" id="exportBtn">📥 Export Results (CSV)</button>
+            </div>
+
+            <div class="table-container">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Offer Title</th>
+                            <th>Coupon Code</th>
+                            <th>URL</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script>
+        // State management
+        let originalData = null;
+        let updatedData = null;
+        let comparisonResults = [];
+        let activeFilters = new Set(['unchanged', 'new', 'deleted']);
+
+        // File upload handlers
+        const originalBox = document.getElementById('originalBox');
+        const updatedBox = document.getElementById('updatedBox');
+        const originalFile = document.getElementById('originalFile');
+        const updatedFile = document.getElementById('updatedFile');
+        const compareBtn = document.getElementById('compareBtn');
+
+        originalBox.addEventListener('click', () => originalFile.click());
+        updatedBox.addEventListener('click', () => updatedFile.click());
+
+        originalFile.addEventListener('change', (e) => handleFileUpload(e, 'original'));
+        updatedFile.addEventListener('change', (e) => handleFileUpload(e, 'updated'));
+
+        compareBtn.addEventListener('click', compareFiles);
+
+        // Filter handlers
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => toggleFilter(btn));
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', exportResults);
+
+        function handleFileUpload(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const csv = e.target.result;
+                const parsed = parseCSV(csv);
+                
+                if (type === 'original') {
+                    originalData = parsed;
+                    document.getElementById('originalFileName').textContent = file.name;
+                    originalBox.classList.add('active');
+                } else {
+                    updatedData = parsed;
+                    document.getElementById('updatedFileName').textContent = file.name;
+                    updatedBox.classList.add('active');
+                }
+
+                if (originalData && updatedData) {
+                    compareBtn.disabled = false;
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(csv) {
+            const parsed = Papa.parse(csv, {
+                header: true,
+                skipEmptyLines: true,
+                transformHeader: (header) => header.trim()
+            });
+
+            const headers = parsed.meta.fields;
+            
+            const titleIndex = findColumnIndex(headers, ['offer title', 'title', 'offer name', 'name', 'offer']);
+            const codeIndex = findColumnIndex(headers, ['coupon code', 'code', 'coupon', 'promo code']);
+            
+            // Find URL column - look for offer page URL, NOT image URL
+            let urlIndex = -1;
+            
+            // First priority: columns specifically named "Offer URL", "Offer Link", "Page URL" etc
+            const specificUrlColumns = ['offer url', 'offer link', 'offer page url', 'page url', 'offer page'];
+            for (let colName of specificUrlColumns) {
+                const index = headers.findIndex(h => h.toLowerCase() === colName);
+                if (index !== -1) {
+                    urlIndex = index;
+                    break;
+                }
+            }
+            
+            // Second priority: columns containing "link" or "url" but NOT "image"
+            if (urlIndex === -1) {
+                const index = headers.findIndex(h => {
+                    const lower = h.toLowerCase();
+                    // Skip if contains "image", "img", "picture", "photo"
+                    if (lower.includes('image') || lower.includes('img') || 
+                        lower.includes('picture') || lower.includes('photo')) {
+                        return false;
+                    }
+                    // Accept if contains "link" or "url"
+                    return lower.includes('link') || lower.includes('url');
+                });
+                if (index !== -1) {
+                    urlIndex = index;
+                }
+            }
+
+            console.log('=== FILE PARSED ===');
+            console.log('Headers:', headers);
+            console.log('Title column index:', titleIndex, headers[titleIndex]);
+            console.log('Code column index:', codeIndex, codeIndex !== -1 ? headers[codeIndex] : 'NOT FOUND');
+            console.log('URL column index:', urlIndex, urlIndex !== -1 ? headers[urlIndex] : 'NOT FOUND');
+            console.log('Total rows:', parsed.data.length);
+
+            const data = [];
+            for (let i = 0; i < parsed.data.length; i++) {
+                const row = parsed.data[i];
+                
+                const titleKey = headers[titleIndex];
+                const codeKey = codeIndex !== -1 ? headers[codeIndex] : null;
+                const urlKey = urlIndex !== -1 ? headers[urlIndex] : null;
+                
+                const offer = {
+                    title: titleKey && row[titleKey] ? row[titleKey].trim() : '',
+                    code: codeKey && row[codeKey] ? row[codeKey].trim() : '',
+                    url: urlKey && row[urlKey] ? row[urlKey].trim() : '',
+                    raw: row
+                };
+                
+                if (offer.title || offer.url || offer.code) {
+                    data.push(offer);
+                }
+            }
+
+            console.log('Valid offers extracted:', data.length);
+            console.log('First offer sample:', data[0]);
+
+            return { headers, data };
+        }
+
+        function findColumnIndex(headers, possibilities) {
+            for (let possibility of possibilities) {
+                const index = headers.findIndex(h => 
+                    h.toLowerCase().includes(possibility.toLowerCase())
+                );
+                if (index !== -1) return index;
+            }
+            return -1;
+        }
+
+        function compareFiles() {
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.classList.add('visible');
+            resultsSection.innerHTML = '<div class="loading"><div class="spinner"></div><p>Analyzing offers...</p></div>';
+
+            setTimeout(() => {
+                comparisonResults = performComparison();
+                displayResults();
+            }, 500);
+        }
+
+        function performComparison() {
+            const results = [];
+            const updatedMatched = new Set();
+            const seenTitles = new Set();
+
+            // FIRST PASS: Match by coupon code (highest priority)
+            for (let original of originalData.data) {
+                if (!original.code) continue; // Skip if no code
+                
+                for (let i = 0; i < updatedData.data.length; i++) {
+                    if (updatedMatched.has(i)) continue;
+                    
+                    const updated = updatedData.data[i];
+                    
+                    if (updated.code && original.code.toLowerCase() === updated.code.toLowerCase()) {
+                        console.log('✓ CODE MATCH:', original.code, '→', {
+                            origTitle: original.title,
+                            updTitle: updated.title
+                        });
+                        
+                        const key = updated.title.toLowerCase().trim();
+                        if (!seenTitles.has(key)) {
+                            results.push({
+                                status: 'unchanged',
+                                title: updated.title || original.title,
+                                code: updated.code || original.code,
+                                url: updated.url || original.url
+                            });
+                            seenTitles.add(key);
+                        }
+                        updatedMatched.add(i);
+                        break;
+                    }
+                }
+            }
+
+            console.log('After code matching:', results.length, 'matched');
+
+            // SECOND PASS: Match by title, URL, or offer details
+            for (let original of originalData.data) {
+                // Skip if this original offer was already matched by code
+                const alreadyMatched = results.some(r => 
+                    r.code && original.code && r.code.toLowerCase() === original.code.toLowerCase()
+                );
+                if (alreadyMatched) continue;
+                
+                let matched = false;
+                
+                for (let i = 0; i < updatedData.data.length; i++) {
+                    const updated = updatedData.data[i];
+                    
+                    if (updatedMatched.has(i)) continue;
+
+                    const titleMatch = checkTitleMatch(original.title, updated.title);
+                    const urlMatch = original.url && updated.url && 
+                                    normalizeUrl(original.url) === normalizeUrl(updated.url);
+                    const detailsMatch = checkOfferDetailsMatch(original.raw, updated.raw);
+
+                    // Log URL comparisons
+                    if (original.url && updated.url) {
+                        console.log('URL comparison:', {
+                            origTitle: original.title.substring(0, 40),
+                            updTitle: updated.title.substring(0, 40),
+                            origUrl: normalizeUrl(original.url),
+                            updUrl: normalizeUrl(updated.url),
+                            urlMatch: urlMatch
+                        });
+                    }
+
+                    if (titleMatch || urlMatch || detailsMatch) {
+                        const key = updated.title.toLowerCase().trim();
+                        if (!seenTitles.has(key)) {
+                            results.push({
+                                status: 'unchanged',
+                                title: updated.title || original.title,
+                                code: updated.code || original.code,
+                                url: updated.url || original.url
+                            });
+                            seenTitles.add(key);
+                        }
+                        updatedMatched.add(i);
+                        matched = true;
+                        break;
+                    }
+                }
+
+                if (!matched) {
+                    const key = original.title.toLowerCase().trim();
+                    if (!seenTitles.has(key)) {
+                        results.push({
+                            status: 'deleted',
+                            title: original.title,
+                            code: original.code,
+                            url: original.url
+                        });
+                        seenTitles.add(key);
+                    }
+                }
+            }
+
+            // THIRD PASS: Find new offers (in updated but not matched)
+            for (let i = 0; i < updatedData.data.length; i++) {
+                if (!updatedMatched.has(i)) {
+                    const updated = updatedData.data[i];
+                    const key = updated.title.toLowerCase().trim();
+                    if (!seenTitles.has(key)) {
+                        results.push({
+                            status: 'new',
+                            title: updated.title,
+                            code: updated.code,
+                            url: updated.url
+                        });
+                        seenTitles.add(key);
+                    }
+                }
+            }
+
+            console.log('Comparison complete - Unchanged:', results.filter(r => r.status === 'unchanged').length,
+                       'New:', results.filter(r => r.status === 'new').length,
+                       'Deleted:', results.filter(r => r.status === 'deleted').length);
+
+            return results;
+        }
+
+        function normalizeUrl(url) {
+            if (!url) return '';
+            return url.toLowerCase().trim().replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+        }
+
+        function checkTitleMatch(title1, title2) {
+            if (!title1 || !title2) return false;
+            
+            const normalize = (str) => {
+                return str
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^\w\s]/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            };
+            
+            const norm1 = normalize(title1);
+            const norm2 = normalize(title2);
+            
+            if (norm1 === norm2) {
+                return true;
+            }
+
+            const words1 = norm1.split(' ');
+            const words2 = norm2.split(' ');
+
+            if (words1.length >= 3 && words2.length >= 3) {
+                for (let i = 0; i <= words1.length - 3; i++) {
+                    const phrase1 = words1.slice(i, i + 3).join(' ');
+                    
+                    for (let j = 0; j <= words2.length - 3; j++) {
+                        const phrase2 = words2.slice(j, j + 3).join(' ');
+                        
+                        if (phrase1 === phrase2) {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        function checkOfferDetailsMatch(originalRaw, updatedRaw) {
+            if (!originalRaw || !updatedRaw) return false;
+            
+            // Try to find offer details columns
+            const detailsColumns = ['offer details', 'Offer Details', 'details', 'Details', 
+                                   'discount or offer details', 'Discount or Offer Details',
+                                   'description', 'Description', 'Offer Details '];
+            
+            let originalDetails = '';
+            let updatedDetails = '';
+            
+            // Find details in original
+            for (let col of detailsColumns) {
+                if (originalRaw[col]) {
+                    originalDetails = originalRaw[col];
+                    console.log('Found original details in column:', col);
+                    break;
+                }
+            }
+            
+            // Find details in updated
+            for (let col of detailsColumns) {
+                if (updatedRaw[col]) {
+                    updatedDetails = updatedRaw[col];
+                    console.log('Found updated details in column:', col);
+                    break;
+                }
+            }
+            
+            // If both have details, check for 3 continuous words with "card" or "cards"
+            if (originalDetails && updatedDetails) {
+                const normalize = (str) => {
+                    return str
+                        .toLowerCase()
+                        .trim()
+                        .replace(/[^\w\s]/g, ' ')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+                };
+                
+                const norm1 = normalize(originalDetails);
+                const norm2 = normalize(updatedDetails);
+                
+                const words1 = norm1.split(' ');
+                const words2 = norm2.split(' ');
+                
+                console.log('Checking offer details:', {
+                    orig: norm1.substring(0, 100),
+                    upd: norm2.substring(0, 100)
+                });
+                
+                // Check for 3 continuous words where one is "card" or "cards"
+                if (words1.length >= 3 && words2.length >= 3) {
+                    for (let i = 0; i <= words1.length - 3; i++) {
+                        const phrase1Words = words1.slice(i, i + 3);
+                        const phrase1 = phrase1Words.join(' ');
+                        
+                        // Check if this phrase contains "card" or "cards"
+                        if (!phrase1Words.includes('card') && !phrase1Words.includes('cards')) {
+                            continue;
+                        }
+                        
+                        for (let j = 0; j <= words2.length - 3; j++) {
+                            const phrase2Words = words2.slice(j, j + 3);
+                            const phrase2 = phrase2Words.join(' ');
+                            
+                            // Check if this phrase contains "card" or "cards"
+                            if (!phrase2Words.includes('card') && !phrase2Words.includes('cards')) {
+                                continue;
+                            }
+                            
+                            if (phrase1 === phrase2) {
+                                console.log('✓ Details match found:', phrase1);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            } else {
+                console.log('No details columns found in one or both files');
+            }
+            
+            return false;
+        }
+
+        function displayResults() {
+            const resultsSection = document.getElementById('resultsSection');
+            resultsSection.innerHTML = `
+                <div class="stats">
+                    <div class="stat-card unchanged">
+                        <h3>Unchanged Offers</h3>
+                        <div class="number" id="unchangedCount">0</div>
+                    </div>
+                    <div class="stat-card new">
+                        <h3>New Offers</h3>
+                        <div class="number" id="newCount">0</div>
+                    </div>
+                    <div class="stat-card deleted">
+                        <h3>Deleted Offers</h3>
+                        <div class="number" id="deletedCount">0</div>
+                    </div>
+                </div>
+
+                <div class="filters">
+                    <button class="filter-btn unchanged active" data-status="unchanged">
+                        Unchanged <span class="filter-badge" id="unchangedBadge">0</span>
+                    </button>
+                    <button class="filter-btn new active" data-status="new">
+                        New Offers <span class="filter-badge" id="newBadge">0</span>
+                    </button>
+                    <button class="filter-btn deleted active" data-status="deleted">
+                        Deleted <span class="filter-badge" id="deletedBadge">0</span>
+                    </button>
+                    <button class="export-btn" id="exportBtn">📥 Export Results (CSV)</button>
+                </div>
+
+                <div class="table-container">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Offer Title</th>
+                                <th>Coupon Code</th>
+                                <th>URL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => toggleFilter(btn));
+            });
+            document.getElementById('exportBtn').addEventListener('click', exportResults);
+
+            const counts = {
+                unchanged: comparisonResults.filter(r => r.status === 'unchanged').length,
+                new: comparisonResults.filter(r => r.status === 'new').length,
+                deleted: comparisonResults.filter(r => r.status === 'deleted').length
+            };
+
+            document.getElementById('unchangedCount').textContent = counts.unchanged;
+            document.getElementById('newCount').textContent = counts.new;
+            document.getElementById('deletedCount').textContent = counts.deleted;
+
+            document.getElementById('unchangedBadge').textContent = counts.unchanged;
+            document.getElementById('newBadge').textContent = counts.new;
+            document.getElementById('deletedBadge').textContent = counts.deleted;
+
+            renderTable();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+
+            const filtered = comparisonResults.filter(r => activeFilters.has(r.status));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4">
+                            <div class="no-results">
+                                <div class="no-results-icon">🔍</div>
+                                <p>No offers match the selected filters</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            filtered.forEach(result => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <span class="status-badge ${result.status}">${result.status}</span>
+                    </td>
+                    <td class="offer-title">${escapeHtml(result.title)}</td>
+                    <td>
+                        ${result.code ? `<span class="coupon-code">${escapeHtml(result.code)}</span>` : '-'}
+                    </td>
+                    <td>
+                        ${result.url ? `<a href="${escapeHtml(result.url)}" class="offer-url" target="_blank">${escapeHtml(result.url)}</a>` : '-'}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function toggleFilter(btn) {
+            const status = btn.dataset.status;
+            
+            if (activeFilters.has(status)) {
+                activeFilters.delete(status);
+                btn.classList.remove('active');
+            } else {
+                activeFilters.add(status);
+                btn.classList.add('active');
+            }
+
+            renderTable();
+        }
+
+        function exportResults() {
+            const filtered = comparisonResults.filter(r => activeFilters.has(r.status));
+            
+            let csv = 'Status,Offer Title,Coupon Code,URL\n';
+            filtered.forEach(result => {
+                csv += `"${result.status}","${result.title}","${result.code}","${result.url}"\n`;
+            });
+
+            const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            const a = document.createElement('a');
+            a.href = dataUri;
+            a.download = `offer_comparison_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
